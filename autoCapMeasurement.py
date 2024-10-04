@@ -1,3 +1,9 @@
+########################################################
+#CapBankTestScript.py
+#Created on: Jan 30, 2023
+#Author: Swantika Dhundia
+########################################################
+
 import pyvisa
 import time
 import csv

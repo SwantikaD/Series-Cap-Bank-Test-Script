@@ -11,6 +11,7 @@ from datetime import datetime
 import msvcrt
 import sys
 
+#query HV PSU voltage and current measurement and log to csv
 def HV_datalog(logFile,time_on_off):
 
 	for i in range(int(time_on_off)):
@@ -59,15 +60,16 @@ def HV_datalog(logFile,time_on_off):
 		#wait 0.7 sec
 		time.sleep(0.7)
 
+#query DMM voltage and capacitance measurement and log to csv
 def CAP_datalog(logFile):
 
     try:
-        volt = float(dmm.query('MEAS:VOLT?', delay = 0.5)) #0.1s delay between query write and read
+        volt = float(dmm.query('MEAS:VOLT?', delay = 0.5)) #0.5s delay between query write and read
     except Exception as e:
         print(e)
         print(datetime.now(),'Resend voltage query...')
         try:
-            volt = float(dmm.query('MEAS:VOLT?', delay = 0.5)) #0.1s delay between query write and read
+            volt = float(dmm.query('MEAS:VOLT?', delay = 0.5)) #0.5s delay between query write and read
         except Exception as e:
             print(e)
             print(datetime.now(),'Still no response...')
@@ -76,12 +78,12 @@ def CAP_datalog(logFile):
     time.sleep(0.1)
 
     try:
-        cap = float(dmm.query(':MEASure:SCALar:CAPacitance? %s,%s' % ('MAXimum', 'DEFault'), delay = 0.5)) #0.1s delay between query write and read
+        cap = float(dmm.query(':MEASure:SCALar:CAPacitance? %s,%s' % ('MAXimum', 'DEFault'), delay = 0.5)) #0.5s delay between query write and read
     except Exception as e:
         print(e)
         print(datetime.now(),'Resend capacitance query...')
         try:
-            cap = float(dmm.query(':MEASure:SCALar:CAPacitance? %s,%s' % ('MAXimum', 'DEFault'), delay = 0.5)) #0.1s delay between query write and read
+            cap = float(dmm.query(':MEASure:SCALar:CAPacitance? %s,%s' % ('MAXimum', 'DEFault'), delay = 0.5)) #0.5s delay between query write and read
         except Exception as e:
             print(e)
             print(datetime.now(),'Still no response...')
@@ -103,7 +105,8 @@ def CAP_datalog(logFile):
         csv_writer = csv.DictWriter(csv_file, fieldnames2)
         csv_writer.writerow(info)
 
-def query_400V():
+#check if HV PSU is on or off
+def query_HV_PSU():
 
     try:
         reply = int(hvPSU.query('OUTP?'))
@@ -118,14 +121,15 @@ def query_400V():
             reply = -1
     finally:
         if reply == 1:
-            print('400V is on...')
+            print('HV is on...')
         elif reply == 0:
-            print('400V is off...')
+            print('HV is off...')
         else:
-            print('400V PSU reply to query is: ' + str(reply))
+            print('HV PSU reply to query is: ' + str(reply))
         
     return reply 
 
+#configure LV PSU two output channels to drive the power routing IGBT switches
 def configure_E3646A(switch):
 
     if switch == '1':
@@ -154,7 +158,7 @@ def configure_E3646A(switch):
 
         print ('E3646A is configured. Enable output to turn on SW3....\n')
     
-                   
+#check if LV PSU is on or off                 
 def query_E3646A():
 
     try:
@@ -178,7 +182,7 @@ def query_E3646A():
         
     return reply           
 
-
+#check if PWM generator is on or off
 def query_33220A():
 
     try:
@@ -235,8 +239,8 @@ print('DMM Capacitance data log file created....\n')
 #Get user inputs: V_set, I_set, t_on, t_off
 v_set = input('Enter voltage setting in volts: ')
 i_set = input('Enter current setting in amps: ')
-t_on = input('Enter 400V on time in sec: ')
-t_off = input('Enter 400V off time in sec: ')
+t_on = input('Enter HV on time in sec: ')
+t_off = input('Enter HV off time in sec: ')
 
 #List visa resources
 print('\nConnecting to instrument....')
@@ -249,7 +253,7 @@ dmm = rm.open_resource('GPIB0::4::INSTR')
 loadPWM = rm.open_resource('GPIB0::10::INSTR')
 
 #configure measurement instrument
-#400V PSU
+#HV PSU
 hvPSU.read_termination = '\r'
 hvPSU.write_termination = '\r'
 hvPSU.timeout = 5000
@@ -280,16 +284,16 @@ except Exception as e:
     #exit program
     sys.exit(1)
 else:
-    print ('400V PSU connection successful....\n')
+    print ('HV PSU connection successful....\n')
 
     #Turn off power supply at start
-    hvPSU_status = query_400V()
+    hvPSU_status = query_HV_PSU()
     if hvPSU_status == '1':
         hvPSU.write('OUTP OFF')
         time.sleep(0.05)
-        print('Instrument output was on. Now turned: ' + query_400V())
+        print('Instrument output was on. Now turned: ' + query_HV_PSU())
     elif hvPSU_status == '0':
-        print('400V PSU is off.')
+        print('HV PSU is off.')
 
     #Write settings input by user
     print('Writing voltage and current settings to the instrument...')
@@ -298,7 +302,7 @@ else:
     time.sleep(0.1)
     print('Voltage setting readback: ' + hvPSU.query('VSET?'))
     print('Current setting readback: ' + hvPSU.query('ISET?'))
-    print('400V PSU is ready...\n')
+    print('HV PSU is ready...\n')
 
 #3.3V check IDN and set voltage and current limit                   
 try:
@@ -372,12 +376,12 @@ try:
 
         time.sleep(1)
 
-        #Turn on 400V
+        #Turn on HV
         hvPSU.write('OUTP ON')
         time.sleep(0.1)
-        hvStatus = query_400V()
+        hvStatus = query_HV_PSU()
         if hvStatus != 1:
-            raise Exception('400V did not turn on')
+            raise Exception('HV did not turn on')
 
         time.sleep(5)
 
@@ -393,12 +397,12 @@ try:
         #log data
         HV_datalog(csv_filename1, t_on)
 
-        #Turn off 400V
+        #Turn off HV
         hvPSU.write('OUTP OFF')
         time.sleep(0.1)
-        hvStatus = query_400V()
+        hvStatus = query_HV_PSU()
         if hvStatus != 0:
-            raise Exception('400V did not turn off')
+            raise Exception('HV did not turn off')
 
         time.sleep(5)
 
@@ -419,7 +423,7 @@ try:
         if sw1Status != 0:
             raise Exception('SW1 did not turn off')
 
-        print('Cap board powered off and disconnected from 400V as well as dynamic load...\n')
+        print('Cap board powered off and disconnected from HV as well as dynamic load...\n')
 
         #Configure 3.3V PSU to turn on SW1
         configure_E3646A('3')

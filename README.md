@@ -7,12 +7,12 @@ The repository includes the Python script for customization, along with an execu
 
 
 ## Features
-- Instrument communication check: Automatically verifies connectivity with all instruments at the start of each test.
-- User-configurable HV PSU settings: Allows control of input voltage, current, and power cycle timing.
-- Automated capacitance measurement: Automatically configures the setup by disconnecting power and load, then connecting the DMM to measure capacitance when the PCB is powered off.
-- Data logging: Logs Sorenson (HV) power supply voltage and current every second during operation. Also, captures PCB capacitance and voltage during power-off to ensure the capacitor bank is fully discharged before measurement. 
-- Retry mechanism: Retries communication with instruments up to 2 times before aborting the test.
-- Safe shutdown: Easily stop the test and power off all instruments with CTRL+C.
+- **Instrument communication check:** Automatically verifies connectivity with all instruments at the start of each test.
+- **User-configurable HV PSU settings:** Allows control of input voltage, current, and power cycle timing.
+- **Automated capacitance measurement:** Automatically configures the setup by disconnecting power and load, then connecting the DMM to measure capacitance when the PCB is powered off.
+- **Data logging:** Logs Sorenson (HV) power supply voltage and current every second during operation. Also, captures PCB capacitance and voltage during power-off to ensure the capacitor bank is fully discharged before measurement. 
+- **Retry mechanism:** Retries communication with instruments up to 2 times before aborting the test.
+- **Safe shutdown:** Easily stop the test and power off all instruments with CTRL+C.
 
 
 ## Prerequisites 
@@ -31,20 +31,19 @@ The repository includes the Python script for customization, along with an execu
 
 
 ## Usage
-1. Clone this repository: 
-    git clone https://github.com/SwantikaD/Series-Cap-Bank-Test-Script
+1. Download and extract `Cap-Bank-Tester-v1.0.0.zip` from the Releases section of this [repository](https://github.com/SwantikaD/Series-Cap-Bank-Test-Script). The extracted folder will contain the executable. 
 
 2. Create `Data` folder in C drive to store the test data logs. 
 
-3. Open command prompt, navigate to the repo location and run the executable:
-    cd <path/to/executable>
-    CapBankTestScript.exe
+3. Open command prompt, navigate to the folder containing the executable and run it:
+    - cd <path/to/executable>
+    - CapBankTestScript.exe
 
 4. Enter the settings for input HV Power Supply when prompted. See example below:
     - Enter voltage setting in volts: 400
     - Enter current setting in amps: 0.8
-    - Enter power on time in sec: 900
-    - Enter power off time in sec: 900
+    - Enter HV on time in sec: 900
+    - Enter HV off time in sec: 900
 
 5. The test starts automatically after configuration.
 
@@ -52,11 +51,11 @@ The repository includes the Python script for customization, along with an execu
 
 
 ## Logging
-Sorenson power supply voltage and current are logged every second with timestamps and saved as `SorensonPSU-{}.csv` in the C:/Data folder. The log includes:
+- Sorenson power supply voltage and current are logged every second with timestamps and saved as `SorensonPSU-{}.csv` in the C:/Data folder. The log includes:
     - HV Voltage (HV_V)
     - HV Current (HV_I)
 
-During the user-configurable PCB power-off period, the capacitor bank voltage and capacitance are logged with timestamps and saved as `DMMCapacitance-{}.csv` in the C:/Data folder. The log includes:
+- During the user-configurable PCB power-off period, the capacitor bank voltage and capacitance are logged with timestamps and saved as `DMMCapacitance-{}.csv` in the C:/Data folder. The log includes:
     - Capacitor Bank Off Voltage (UUT_OFF_V)
     - Capacitor Bank Capacitance (UUT_OFF_CAP)
 
@@ -71,7 +70,7 @@ During the user-configurable PCB power-off period, the capacitor bank voltage an
 
 
 2. Communication Errors
-    If the instrument connects but fails to communicate (i.e., all 3 retry attempts fail):
+    If the instrument connects but fails to communicate (i.e., 2 retry attempts fail):
     - Power cycle the instrument and rerun the script.
     - If the issue persists, use Keysight Command Expert(CE) to reset the instrument:
         - Install Keysight Command Expert.
